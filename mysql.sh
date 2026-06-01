@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Check if MySQL is installed
-USERID=(id -u)
+USERID=$(id -u)
 
 #check if the user is root
 if [ $USERID -ne 0 ]; then
