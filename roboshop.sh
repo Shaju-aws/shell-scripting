@@ -1,93 +1,116 @@
 #!/bin/bash
 
+#export PATH=$PATH:/usr/local/bin
+
 AMI_ID="ami-0220d79f3f480ecf5"
-ZONE_ID="Z026504233SANXQ4H9YRL"
-ROUTE53_DOMAIN="devopstech.shop"
-# Check if MySQL is installed
-USERID=$(id -u)
+ZONE_ID="Z07086101C1CVP7AT2UK4" # replace with your zone ID
+DOMAIN_NAME="daws90s.shop" # replace with your domain name
+R="\e[31m"
+G="\e[32m"
+Y="\e[33m"
+N="\e[0m"
 
-#check if the user is root
-if [ "$USERID" -ne 0 ]; then
-    echo "Please run this script as root."
-    exit 1
-fi
-
+### Validation ###
 if [ $# -lt 2 ]; then
-    echo "Error: Atleast 2 arguments are required."
-    echo "Usage: $0 [create/delete] [instance1 instance2 ...]"
+    echo -e "$R ERROR:: Atleast 2 arguments required $N"
+    echo "USAGE: $0 [create/delete] [instance1] [instance2...]"
     exit 1
 fi
 
 ACTION=$1
-shift
+shift # first argument will be removed
 
 if [ "$ACTION" != "create" ] && [ "$ACTION" != "delete" ]; then
-    echo "Error: Invalid action. Use 'create' or 'delete'."
-    echo "Usage: $0 [create/delete] [instance1 instance2 ...]"
+    echo -e "$R ERROR:: First argument must be either create or delete $N"
+    echo "USAGE: $0 [create/delete] [instance1] [instance2...]"
     exit 1
 fi
 
-get_instanceID() {
+get_instance_id(){
     name=$1
-    aws ec2 describe-instances --filters "Name=tag:Name,Values=Roboshop-$name" "Name=instance-state-name,Values=running" \
-    --query "Reservations[0].Instances[0].InstanceId" --output text
+    aws ec2 describe-instances --filters "Name=tag:Name,Values=roboshop-$name" "Name=instance-state-name,Values=running" --query "Reservations[0].Instances[0].InstanceId" --output text
 }
 
 for instance in $@
 do
-INSTANCE_ID=$(get_instanceID $instance)
-if [ "$ACTION" == "create" ]; then
-    if [ "$INSTANCE_ID" == "None" ]; then
-        echo "creating instance for Roboshop-$instance"
-        INSTANCE_ID=$(aws ec2 run-instances \
-                    --image-id $AMI_ID \ # Replace with your desired AMI ID
-                    --count 1 \
-                    --instance-type t2.micro \
-                    --security-groups Roboshop-common Roboshop-$instance \
-                    --tag-specifications 'ResourceType=instance,Tags=[{Key=Name,Value=Roboshop-'$instance'}]' \
-                    --query "Instances[0].InstanceId" --output text)
-        echo "Instance created with ID: $INSTANCE_ID"
+    INSTANCE_ID=$(get_instance_id $instance)
+    if [ $ACTION == "create" ]; then
+        if [ $INSTANCE_ID == "None" ]; then
+            echo "Launching Instance: roboshop-$instance"
+            INSTANCE_ID=$( aws ec2 run-instances \
+            --image-id $AMI_ID \
+            --instance-type t3.micro \
+            --security-groups "roboshop-common" "roboshop-$instance" \
+            --tag-specifications "ResourceType=instance,Tags=[{Key=Name,Value=roboshop-$instance}]" \
+            --query 'Instances[0].InstanceId' \
+            --output text 
+            )
+            echo "Launched Instance: $INSTANCE_ID"
+            aws ec2 wait instance-running --instance-ids $INSTANCE_ID
+            echo "Instance is running: $INSTANCE_ID"
+
         else
-        echo "Instance for Roboshop-$instance already exists with ID: $INSTANCE_ID"
-    fi
+            echo "roboshop-$instance already running: $INSTANCE_ID"
+        fi
 
-    if [ "instance" == "frontend" ]; then
-        IP=$(aws ec2 describe-instances --instance-ids $INSTANCE_ID --query "Reservations[0].Instances[0].PublicIpAddress" --output text)
-        echo "Creating Route53 record for Roboshop-$instance with IP: $IP"
-        R53RECORD="$ROUTE53_DOMAIN"
-    
-    else
-        IP=$(aws ec2 describe-instances --instance-ids $INSTANCE_ID --query "Reservations[0].Instances[0].PrivateIpAddress" --output text)
-        echo "Creating Route53 record for Roboshop-$instance with IP: $IP"
-        R53RECORD="$instance.$ROUTE53_DOMAIN"
-    fi
+        # update R53 record
+        if [ $instance == "frontend" ]; then
+            IP=$(aws ec2 describe-instances --instance-ids $INSTANCE_ID \
+            --query 'Reservations[*].Instances[*].PublicIpAddress' \
+            --output text
+            )
+            R53_RECORD="$DOMAIN_NAME"
+        else
+            IP=$(aws ec2 describe-instances --instance-ids $INSTANCE_ID \
+            --query 'Reservations[*].Instances[*].PrivateIpAddress' \
+            --output text
+            )
+            R53_RECORD="$instance.$DOMAIN_NAME"
+        fi
 
-    aws route53 change-resource-record-sets --hosted-zone-id $ZONE_ID --change-batch '{
-        "Changes": [
+        aws route53 change-resource-record-sets \
+        --hosted-zone-id $ZONE_ID \
+        --change-batch '
             {
-                "Action": "UPSERT",
-                "ResourceRecordSet": {
-                    "Name": "'$R53RECORD'",
-                    "Type": "A",
-                    "TTL": 1,
-                    "ResourceRecords": [
-                        {
-                            "Value": "'$IP'"
+                "Comment": "Update A record to new IP",
+                "Changes": [
+                    {
+                        "Action": "UPSERT",
+                        "ResourceRecordSet": {
+                            "Name": "'$R53_RECORD'",
+                            "Type": "A",
+                            "TTL": 1,
+                            "ResourceRecords": [
+                                {
+                                    "Value": "'$IP'"
+                                }
+                            ]
                         }
-                    ]
-                }
+                    }
+                ]
             }
-        ]
-    }'
-    echo "Route53 record created for $R53RECORD with IP: $IP"
+        '
+        echo "updated R53 record for: $instance"
     else
-    if [ "$INSTANCE_ID" != "None" ]; then
-        echo "Terminating instance for Roboshop-$instance with ID: $INSTANCE_ID"
-        aws ec2 terminate-instances --instance-ids $INSTANCE_ID
-        echo "Instance terminated for Roboshop-$instance with ID: $INSTANCE_ID"
-    else
-        echo "No running instance found for Roboshop-$instance to terminate."
+        if [ $INSTANCE_ID == "None" ]; then
+            echo "$instance already destroyed, nothing to do..."
+        else
+            aws ec2 terminate-instances --instance-ids $INSTANCE_ID
+            echo "Terminating Instance: $instance"
+        fi
     fi
-
-fi
 done
+
+# ================================================================
+# ASSIGNMENT 2 — roboshop-v3.sh (Handle stopped instances)
+# ================================================================
+
+# roboshop-v2.sh only checks for "running" instances.
+# A stopped instance is treated as non-existent — it gets re-created
+# instead of re-started, and on delete it is silently skipped.
+
+# Improve it so that:
+
+#   - If create and instance is stopped, start it instead of launching new
+#   - If delete and instance is stopped, terminate it and delete R53 record
+#   - If delete and instance is running, terminate it and delete R53 record
