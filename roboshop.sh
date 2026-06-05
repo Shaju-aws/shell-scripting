@@ -101,6 +101,39 @@ do
     fi
 done
 
+if [ $ACTION == "delete" ]; then
+    for instance in $@
+    do
+        R53_RECORD="$instance.$DOMAIN_NAME"
+        if [ $instance == "frontend" ]; then
+            R53_RECORD="$DOMAIN_NAME"
+        fi
+        aws route53 change-resource-record-sets \
+        --hosted-zone-id $ZONE_ID \
+        --change-batch '
+            {
+                "Comment": "Delete A record",
+                "Changes": [
+                    {
+                        "Action": "DELETE",
+                        "ResourceRecordSet": {
+                            "Name": "'$R53_RECORD'",
+                            "Type": "A",
+                            "TTL": 1,
+                            "ResourceRecords": [
+                                {
+                                    "Value": "'$IP'"
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        '
+        echo "Deleted R53 record for: $instance"
+    done
+fi
+
 # ================================================================
 # ASSIGNMENT 2 — roboshop-v3.sh (Handle stopped instances)
 # ================================================================
