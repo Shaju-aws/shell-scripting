@@ -28,7 +28,7 @@ fi
 
 get_instance_id(){
     name=$1
-    aws ec2 describe-instances --filters "Name=tag:Name,Values=roboshop-$name" "Name=instance-state-name,Values=running" --query "Reservations[0].Instances[0].InstanceId" --output text
+    aws ec2 describe-instances --filters "Name=tag:Name,Values=Roboshop-$name" "Name=instance-state-name,Values=running" --query "Reservations[0].Instances[0].InstanceId" --output text
 }
 
 for instance in $@
@@ -40,8 +40,8 @@ do
             INSTANCE_ID=$( aws ec2 run-instances \
             --image-id $AMI_ID \
             --instance-type t3.micro \
-            --security-groups "Roboshop-common" \
-            --tag-specifications "ResourceType=instance,Tags=[{Key=Name,Value=$instance}]" \
+            --security-groups "Roboshop-common" "Roboshop-$instance-SG" \
+            --tag-specifications "ResourceType=instance,Tags=[{Key=Name,Value=Roboshop-$instance}]" \
             --query 'Instances[0].InstanceId' \
             --output text 
             )
