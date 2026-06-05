@@ -10,6 +10,9 @@ G="\e[32m"
 Y="\e[33m"
 N="\e[0m"
 
+set -x
+set -e
+
 ### Validation ###
 if [ $# -lt 2 ]; then
     echo -e "$R ERROR:: Atleast 2 arguments required $N"
@@ -40,7 +43,7 @@ do
             INSTANCE_ID=$( aws ec2 run-instances \
             --image-id $AMI_ID \
             --instance-type t3.micro \
-            --security-groups "Roboshop-common" "Roboshop-$instance-SG" \
+            --security-groups "Roboshop-common" "MongoDB-SG" \
             --tag-specifications "ResourceType=instance,Tags=[{Key=Name,Value=Roboshop-$instance}]" \
             --query 'Instances[0].InstanceId' \
             --output text 
