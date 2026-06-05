@@ -50,3 +50,44 @@ if [ "$ACTION" == "create" ]; then
         else
         echo "Instance for Roboshop-$instance already exists with ID: $INSTANCE_ID"
     fi
+
+    if [ "instance" == "frontend" ]; then
+        IP=$(aws ec2 describe-instances --instance-ids $INSTANCE_ID --query "Reservations[0].Instances[0].PublicIpAddress" --output text)
+        echo "Creating Route53 record for Roboshop-$instance with IP: $IP"
+        R53RECORD="$ROUTE53_DOMAIN"
+    
+    else
+        IP=$(aws ec2 describe-instances --instance-ids $INSTANCE_ID --query "Reservations[0].Instances[0].PrivateIpAddress" --output text)
+        echo "Creating Route53 record for Roboshop-$instance with IP: $IP"
+        R53RECORD="$instance.$ROUTE53_DOMAIN"
+    fi
+
+    aws route53 change-resource-record-sets --hosted-zone-id $ZONE_ID --change-batch '{
+        "Changes": [
+            {
+                "Action": "UPSERT",
+                "ResourceRecordSet": {
+                    "Name": "'$R53RECORD'",
+                    "Type": "A",
+                    "TTL": 1,
+                    "ResourceRecords": [
+                        {
+                            "Value": "'$IP'"
+                        }
+                    ]
+                }
+            }
+        ]
+    }'
+    echo "Route53 record created for $R53RECORD with IP: $IP"
+    else
+    if [ "$INSTANCE_ID" != "None" ]; then
+        echo "Terminating instance for Roboshop-$instance with ID: $INSTANCE_ID"
+        aws ec2 terminate-instances --instance-ids $INSTANCE_ID
+        echo "Instance terminated for Roboshop-$instance with ID: $INSTANCE_ID"
+    else
+        echo "No running instance found for Roboshop-$instance to terminate."
+    fi
+
+fi
+done
