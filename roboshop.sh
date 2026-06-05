@@ -36,12 +36,12 @@ do
     INSTANCE_ID=$(get_instance_id $instance)
     if [ $ACTION == "create" ]; then
         if [ $INSTANCE_ID == "None" ]; then
-            echo "Launching Instance: roboshop-$instance"
+            echo "Launching Instance: $instance"
             INSTANCE_ID=$( aws ec2 run-instances \
             --image-id $AMI_ID \
             --instance-type t3.micro \
             --security-groups "Roboshop-common" \
-            --tag-specifications "ResourceType=instance,Tags=[{Key=Name,Value=roboshop-$instance}]" \
+            --tag-specifications "ResourceType=instance,Tags=[{Key=Name,Value=$instance}]" \
             --query 'Instances[0].InstanceId' \
             --output text 
             )
