@@ -34,7 +34,7 @@ validate $? "Redis installed"
 # sed -i -e 's/127.0.0.1/0.0.0.0/g' /etc/redis.conf
 # sed -i -e 's/protected-mode yes/protected-mode no/g' /etc/redis.conf
 
-sed -i -e 's/127.0.0.1/0.0.0.0/g' -e 's/protected-mode yes/protected-mode no/g' /etc/redis.conf &>> $LOG_FILE
+sed -i -e 's/127.0.0.1/0.0.0.0/g' -e 's/protected-mode yes/protected-mode no/g' /etc/redis/redis.conf &>> $LOG_FILE
 validate $? "Redis configuration updated"
 
 systemctl enable redis &>> $LOG_FILE
