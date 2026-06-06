@@ -4,6 +4,7 @@ mkdir -p $LOG_FOLDER
 chmod 755 -R $LOG_FOLDER
 chown ec2-user:ec2-user -R $LOG_FOLDER
 LOG_FILE="$LOG_FOLDER/$0.log"
+SCRIPT_DIR=$PWD
 
 USER_ID=$(id -u)
 R="\e[31m"
@@ -42,7 +43,7 @@ cd /app
 pip3 install -r requirements.txt &>> $LOG_FILE
 validate $? "Payment dependencies installed"
 
-cp payment.service /etc/systemd/system/payment.service &>> $LOG_FILE
+cp ${SCRIPT_DIR}/payment.service /etc/systemd/system/payment.service &>> $LOG_FILE
 validate $? "Payment systemd service file copied"   
 
 systemctl daemon-reload &>> $LOG_FILE

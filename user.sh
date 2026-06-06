@@ -4,6 +4,7 @@ mkdir -p $LOG_FOLDER
 chmod 755 -R $LOG_FOLDER
 chown ec2-user:ec2-user -R $LOG_FOLDER
 LOG_FILE="$LOG_FOLDER/$0.log"
+SCRIPT_DIR=$PWD
 
 USER_ID=$(id -u)
 R="\e[31m"
@@ -46,7 +47,7 @@ cd /app
 npm install 
 validate $? "User dependencies installed"
 
-cp user.service /etc/systemd/system/user.service &>> $LOG_FILE
+cp ${SCRIPT_DIR}/user.service /etc/systemd/system/user.service &>> $LOG_FILE
 validate $? "User systemd service file copied"  
 
 systemctl daemon-reload &>> $LOG_FILE

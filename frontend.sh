@@ -4,6 +4,7 @@ mkdir -p $LOG_FOLDER
 chmod 755 -R $LOG_FOLDER
 chown ec2-user:ec2-user -R $LOG_FOLDER
 LOG_FILE="$LOG_FOLDER/$0.log"
+SCRIPT_DIR=$PWD
 
 USER_ID=$(id -u)
 R="\e[31m"
@@ -42,7 +43,7 @@ unzip /tmp/frontend.zip
 validate $? "Frontend code downloaded and extracted"
 
 rm /etc/nginx/nginx.conf
-cp nginx.conf /etc/nginx/nginx.conf
+cp ${SCRIPT_DIR}/nginx.conf /etc/nginx/nginx.conf
 validate $? "Nginx configuration file copied"
 systemctl restart nginx
 validate $? "Nginx restarted"
