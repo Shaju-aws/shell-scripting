@@ -18,7 +18,7 @@ if [ $USER_ID -ne 0 ]; then
 fi
 
 validate() {
-    if [$1 -ne 0 ]; then
+    if [ $1 -ne 0 ]; then
         echo -e "$R ERROR:: $2 $N"
         exit 1
     else
