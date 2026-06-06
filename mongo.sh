@@ -18,7 +18,7 @@ if [ $USER_ID -ne 0 ]; then
 fi
 
 validate() {
-    if [$1 -ne 0 ]; then
+    if [ $1 -ne 0 ]; then
         echo -e "$R ERROR:: $2 $N"
         exit 1
     else
@@ -30,7 +30,7 @@ cp mongo.repo /etc/yum.repos.d/mongo.repo &>> $LOG_FILE
 validate $? "MongoDB Repo file copied"
 
 dnf install -y mongodb-org &>> $LOG_FILE
-systmctl enable mongod &>> $LOG_FILE
+systemctl enable mongod &>> $LOG_FILE
 systemctl start mongod &>> $LOG_FILE
 validate $? "MongoDB installed and started"
 
