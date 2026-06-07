@@ -35,3 +35,12 @@ validate $? "MySQL started"
 
 mysql_secure_installation --set-root-pass RoboShop@1 &>> $LOG_FILE
 validate $? "MySQL root password set"
+
+mysql -u root -pRoboShop@1 < master.sql &>> $LOG_FILE
+validate $? "Master SQL file imported"
+
+mysql -u root -pRoboShop@1 < shipping.sql &>> $LOG_FILE 
+validate $? "Shipping SQL file imported"
+
+mysql -u root -pRoboShop@1 < user.sql &>> $LOG_FILE
+validate $? "User SQL file imported"
