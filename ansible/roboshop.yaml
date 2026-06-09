@@ -3,7 +3,7 @@
   become: true
   connection: local
   vars:
-    instances: ["mongodb"]
+    instances: ["MongoDB"]
     ami_id: "ami-0220d79f3f480ecf5"
     domain_name: "devopstech.shop"
     action: "create"
@@ -14,8 +14,8 @@
         instance_type: t2.micro
         image_id: "{{ ami_id }}"
         security_groups:
-          - "roboshop-common"
-          - "roboshop-{{ item }}-SG"
+          - "Roboshop-common"
+          - "Roboshop-{{ item }}-SG"
       loop: "{{ instances }}"
       register: instances_output
       when: action == "create"
