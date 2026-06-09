@@ -10,7 +10,7 @@
   tasks:
     - name: creating ec2 instances
       amazon.aws.ec2_instance:
-        name: "{{ item }}"
+        name: "roboshop-{{ item }}"
         instance_type: t2.micro
         image_id: "{{ ami_id }}"
         security_groups:
