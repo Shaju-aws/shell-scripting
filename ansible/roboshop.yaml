@@ -1,0 +1,27 @@
+- name: creating ec2 instances and route53 records
+  hosts: localhost
+  become: true
+  connection: local
+  vars:
+    instances: ["mongodb"]
+    ami_id: "ami-0220d79f3f480ecf5"
+    domain_name: "devopstech.shop"
+    action: "create"
+  tasks:
+    - name: creating ec2 instances
+      amazon.aws.ec2_instance:
+        name: "{{ item }}"
+        instance_type: t2.micro
+        image_id: "{{ ami_id }}"
+        security_groups:
+          - roboshop-common
+          - roboshop-{{ item }}-SG
+        loop: "{{ instances }}"
+        register: instances_output
+        when: action == "create"
+
+    - name: getting the  private IP address of the instances
+      debug:
+        msg: "{{ item.instances[0].private_ip_address }}"
+      loop: "{{ instances_output.results }}"
+
