@@ -14,8 +14,8 @@
         instance_type: t2.micro
         image_id: "{{ ami_id }}"
         security_groups:
-          - roboshop-common
-          - roboshop-{{ item }}-SG
+          - "roboshop-common"
+          - "roboshop-{{ item }}-SG"
       loop: "{{ instances }}"
       register: instances_output
       when: action == "create"
