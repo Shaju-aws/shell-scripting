@@ -25,3 +25,49 @@
         msg: "{{ item.instances[0].private_ip_address }}"
       loop: "{{ instances_output.results }}"
 
+    - name: creating route53 records
+      amazon.aws.route53:
+        state: present
+        zone: "{{ domain_name }}"
+        record: "{{ item.item }}.{{ domain_name }}"
+        type: A
+        ttl: 1
+        value: "{{ item.instances[0].private_ip_address }}"
+      loop: "{{ instances_output.results }}"
+      when: action == "create"
+
+    - name: create route53 records for Frontend with public IP
+      amazon.aws.route53:
+        state: present
+        zone: "{{ domain_name }}"
+        record: "frontend.{{ domain_name }}"
+        type: A
+        ttl: 1
+        value: "{{ item.instances[0].public_ip_address }}"
+      loop: "{{ instances_output.results }}"
+      when: item.item == "Frontend" and action == "create"
+
+    - name: deleting route53 records
+      amazon.aws.route53: 
+        state: absent
+        zone: "{{ domain_name }}"
+        record: "{{ item.item }}.{{ domain_name }}"
+        type: A
+      loop: "{{ instances }}"
+      when: action == "delete"
+
+    - name: deleting route53 record for Frontend
+      amazon.aws.route53:
+        state: absent
+        zone: "{{ domain_name }}"
+        record: "frontend.{{ domain_name }}"
+        type: A
+      loop: "{{ instances }}"
+      when: item.item == "Frontend" and action == "delete"
+
+    - name: deleting ec2 instances
+      amazon.aws.ec2_instance:
+        state: absent
+        name: "roboshop-{{ item }}"
+      loop: "{{ instances }}"
+      when: item.item == "{{ instances }}" and action == "delete"
