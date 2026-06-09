@@ -16,9 +16,9 @@
         security_groups:
           - roboshop-common
           - roboshop-{{ item }}-SG
-        loop: "{{ instances }}"
-        register: instances_output
-        when: action == "create"
+      loop: "{{ instances }}"
+      register: instances_output
+      when: action == "create"
 
     - name: getting the  private IP address of the instances
       debug:
