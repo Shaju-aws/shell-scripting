@@ -22,4 +22,4 @@
       lineinfile:
         path: /etc/redis/redis.conf
         regexp: 'protected-mode yes'
-        replace: 'protected-mode no'
+        line: 'protected-mode no'
