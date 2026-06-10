@@ -15,7 +15,6 @@
       community.rabbitmq.rabbitmq_user:
         user: roboshop
         password: roboshop123
-        state: present
         permissions:
         - vhost: /
           configure_priv: .*
