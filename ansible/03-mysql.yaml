@@ -6,7 +6,6 @@
       package:
         name: mysql-server
         state: present
-        enable: true
     - name: starting and enabling mysql
       service:
         name: mysqld
