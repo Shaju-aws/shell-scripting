@@ -10,7 +10,11 @@
       package:
         name: mongodb-org
         state: present
-        enable: true
+    - name: starting and enabling mongodb
+      service:
+        name: mongod
+        state: started
+        enabled: true
     - name: replace listen address
       replace:
         path: /etc/mongod.conf

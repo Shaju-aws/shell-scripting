@@ -8,7 +8,11 @@
       package:
         name: redis
         state: present
-        enable: true
+    - name: starting and enabling redis
+      service:
+        name: redis
+        state: started
+        enabled: true
     - name: replace listen address
       replace:
         path: /etc/redis.conf
