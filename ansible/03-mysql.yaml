@@ -1,0 +1,16 @@
+- name: configuring mysql
+  hosts: mysql
+  become: true
+  tasks:
+    - name: install mysql server
+      package:
+        name: mysql-server
+        state: present
+        enable: true
+    - name: starting and enabling mysql
+      service:
+        name: mysqld
+        state: started
+        enabled: true
+    - name: changing default mysql root password
+      command: mysql_secure_installation --set-root-pass RoboShop@1

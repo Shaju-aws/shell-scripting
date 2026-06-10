@@ -1,0 +1,13 @@
+- name: creating user if not exist
+  hosts: localhost
+  become: true
+  gather_facts: true
+  tasks:
+    - name: checking the user
+      command: id roboshop
+      register: check_user
+      ignore_errors: true
+
+    - name: creating user if user doesn't exist
+      command: useradd roboshop
+      when: check_user.rc != 0

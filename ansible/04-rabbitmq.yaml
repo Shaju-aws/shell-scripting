@@ -1,0 +1,25 @@
+- name: configuring rabbitmq
+  hosts: rabbitmq
+  become: true
+  tasks:
+    - name: installing rabbitmq
+      package:
+        name: rabbitmq-server
+        state: present
+        enable: true
+    - name: starting and enabling rabbitmq
+      service:
+        name: rabbitmq-server
+        state: started
+        enabled: true
+    - name: adding application user to rabbitmq
+      community.rabbitmq.rabbitmq_user:
+        user: roboshop
+        password: roboshop123
+        state: present
+        permissions:
+        - vhost: /
+          configure_priv: .*
+          read_priv: .*
+          write_priv: .*
+      state: present
