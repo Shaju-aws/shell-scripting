@@ -2,6 +2,10 @@
   hosts: rabbitmq
   become: true
   tasks:
+    - name: copy rabbitmq.repo to destination
+      copy:
+        src: rabbitmq.repo
+        dest: /etc/yum.repos.d/rabbitmq.repo
     - name: installing rabbitmq
       package:
         name: rabbitmq-server
