@@ -3,7 +3,7 @@
   become: true
   connection: local
   vars:
-    instances: ["MongoDB"]
+    instances: ["MongoDB", "Redis", "mysql", "Rabbitmq"]
     ami_id: "ami-0220d79f3f480ecf5"
     domain_name: "devopstech.shop"
     action: "create"
